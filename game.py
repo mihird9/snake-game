@@ -5,7 +5,7 @@ from pygame.math import Vector2
 class Snake:
     def __init__(self):
         self.body = [Vector2(5, 10), Vector2(4, 10), Vector2(3, 10)]
-        self.direction = Vector2(1, 0)
+        self.direction = Vector2(0, 0)
         self.new_block = False
 
         self.head_up = pygame.image.load("Graphics/head_up.png").convert_alpha()
@@ -29,6 +29,7 @@ class Snake:
         self.body_tl = pygame.image.load("Graphics/body_tl.png").convert_alpha()
         self.body_br = pygame.image.load("Graphics/body_br.png").convert_alpha()
         self.body_bl = pygame.image.load("Graphics/body_bl.png").convert_alpha()
+        self.crunch_sound = pygame.mixer.Sound("Sound/crunch.wav")
 
     def draw_snake(self):
         self.update_head_graphics()
@@ -116,6 +117,13 @@ class Snake:
     def add_block(self):
         self.new_block = True
 
+    def play_crunch_sound(self):
+        self.crunch_sound.play()
+
+    def reset(self):
+        self.body = [Vector2(5, 10), Vector2(4, 10), Vector2(3, 10)]
+        self.direction = Vector2(0, 0)
+
 
 class Fruit:
     def __init__(self):
@@ -157,6 +165,11 @@ class Main:
         if self.fruit.pos == self.snake.body[0]:
             self.fruit.randomize()
             self.snake.add_block()
+            self.snake.play_crunch_sound()
+
+        for block in self.snake.body[1:]:
+            if block == self.fruit.pos:
+                self.fruit.randomize()
 
     def check_fail(self):
         if (
@@ -170,8 +183,9 @@ class Main:
                 self.game_over()
 
     def game_over(self):
-        pygame.quit()
-        sys.exit()
+        self.snake.reset()
+        # pygame.quit()
+        # sys.exit()
 
     def draw_grass(self):
         grass_color = (92, 214, 92)
@@ -200,6 +214,7 @@ class Main:
         screen.blit(score_surface, score_rect)
 
 
+pygame.mixer.pre_init(44100, -16, 2, 512)
 pygame.init()
 cell_size = 40
 cell_number = 20
